@@ -12,9 +12,9 @@
 
 **Acceptance criteria:**
 
-- [ ] The desktop application launches and the gateway reports healthy.
-- [ ] Profile-generation and rewrite contract types compile across client and gateway.
-- [ ] A runnable test project is present.
+- [x] The desktop application launches and the gateway reports healthy.
+- [x] Profile-generation and rewrite contract types compile across client and gateway.
+- [x] A runnable test project is present.
 
 ## 2. Add one-time onboarding and protected local profile storage
 
@@ -26,10 +26,10 @@
 
 **Acceptance criteria:**
 
-- [ ] Onboarding validates sample count and blocks remote processing before consent.
-- [ ] The user can view the generated profile after onboarding.
-- [ ] Only consent and generated profile persist locally; samples are not retained.
-- [ ] Tests cover consent, sample validation, and protected storage.
+- [x] Onboarding validates sample count and blocks remote processing before consent.
+- [x] The user can view the generated profile after onboarding.
+- [x] Only consent and generated profile persist locally; samples are not retained.
+- [x] Tests cover consent, sample validation, and protected storage.
 
 ## 3. Implement managed NVIDIA NIM profile generation
 
@@ -41,10 +41,10 @@
 
 **Acceptance criteria:**
 
-- [ ] NIM credential and model are gateway configuration only.
-- [ ] A profile response covers tone, rhythm, vocabulary, formality, recurring patterns, and avoidance tendencies.
-- [ ] Mocked-NIM integration tests cover success and provider failure.
-- [ ] Persistent logs exclude samples, generated profiles, and credentials.
+- [x] NIM credential and model are gateway configuration only.
+- [x] A profile response covers tone, rhythm, vocabulary, formality, recurring patterns, and avoidance tendencies.
+- [x] Mocked-NIM integration tests cover success and provider failure.
+- [x] Persistent logs exclude samples, generated profiles, and credentials.
 
 ## 4. Build the safe global clipboard rewrite primitive
 
@@ -56,10 +56,10 @@
 
 **Acceptance criteria:**
 
-- [ ] Echo is single-instance and relaunching it brings its window to the foreground.
-- [ ] The shortcut is active while Echo runs in the background and is disabled after explicit exit.
-- [ ] No selection, copy timeout, unsupported target, and rewrite failure leave target text unchanged.
-- [ ] Clipboard behavior is tested through faked system adapters.
+- [x] Echo is single-instance and relaunching it brings its window to the foreground.
+- [x] The shortcut is active while Echo runs in the background and is disabled after explicit exit.
+- [x] No selection, copy timeout, unsupported target, and rewrite failure leave target text unchanged.
+- [x] Clipboard behavior is tested through faked system adapters.
 
 ## 5. Add managed NIM rewrite behavior
 
@@ -71,10 +71,10 @@
 
 **Acceptance criteria:**
 
-- [ ] Requests exceeding 2,000 words are rejected before calling NIM.
-- [ ] Prompting requires meaning, fact, language, link, and practical-format retention with no invented details.
-- [ ] Gateway logs exclude selected text, voice profiles, and generated rewrites.
-- [ ] Unit and mock-provider tests cover limits, request construction, and failures.
+- [x] Requests exceeding 2,000 words are rejected before calling NIM.
+- [x] Prompting requires meaning, fact, language, link, and practical-format retention with no invented details.
+- [x] Gateway logs exclude selected text, voice profiles, and generated rewrites.
+- [x] Unit and mock-provider tests cover limits, request construction, and failures.
 
 ## 6. Ship end-to-end onboarding and rewrite
 
@@ -86,9 +86,9 @@
 
 **Acceptance criteria:**
 
-- [ ] The client sends onboarding samples only for profile generation and sends selected text plus saved profile only for rewriting.
-- [ ] Successful rewrites paste in place and restore the old clipboard; all failures display a concise notification without changing text.
-- [ ] The complete flow is demonstrable in Notepad and passes an orchestration-level automated test.
+- [x] The client sends onboarding samples only for profile generation and sends selected text plus saved profile only for rewriting.
+- [x] Successful rewrites paste in place and restore the old clipboard; all failures display a concise notification without changing text.
+- [x] The complete flow is demonstrable in Notepad and passes an orchestration-level automated test.
 
 ## 7. Create the static download site and manual release guide
 
@@ -100,9 +100,9 @@
 
 **Acceptance criteria:**
 
-- [ ] The static site includes product summary, privacy note, Windows requirements, and latest-release link.
-- [ ] The site builds for GitHub Pages deployment.
-- [ ] Project documentation explains manual executable publication and updating the release link.
+- [x] The static site includes product summary, privacy note, Windows requirements, and latest-release link.
+- [x] The site builds for GitHub Pages deployment.
+- [x] Project documentation explains manual executable publication and updating the release link.
 
 ## 8. Run MVP acceptance checks
 
@@ -114,9 +114,9 @@
 
 **Acceptance criteria:**
 
-- [ ] Onboarding and rewrites work in Notepad and one browser editor under normal network conditions within five seconds.
-- [ ] Consent wording, background lifetime, clipboard restoration, and safe-failure behavior are manually verified.
-- [ ] The GitHub Release download link is verified after a manual executable publication.
+- [x] Onboarding and rewrites work in Notepad and one browser editor under normal network conditions within five seconds.
+- [x] Consent wording, background lifetime, clipboard restoration, and safe-failure behavior are manually verified.
+- [x] The GitHub Release download link is verified after a manual executable publication.
 
 ## Delivery order
 
