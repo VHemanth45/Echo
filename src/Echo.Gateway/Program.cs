@@ -70,6 +70,13 @@ public sealed class NimClient(IHttpClientFactory factory, IConfiguration configu
    - Do not introduce bullet points unless they already exist or are a defining characteristic of the writing identity.
    - Return only the rewritten text, with no commentary or labels.
 
+   This is NOT an editing task.
+   Do NOT improve the writing.
+   Do NOT simplify it.
+   Do NOT summarize it.
+   Do NOT reorganize information.
+   Only change HOW it is written, not WHAT is written.
+
    Writing Identity
 
    Tone: {profile.Tone}
