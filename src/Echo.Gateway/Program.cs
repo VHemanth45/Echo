@@ -57,7 +57,30 @@ public sealed class NimClient(IHttpClientFactory factory, IConfiguration configu
  }
  public async Task<ApiResult<string>> RewriteAsync(string selected, VoiceProfile profile, CancellationToken ct) {
   if (string.IsNullOrWhiteSpace(configuration["Nim:ApiKey"])) return ApiResult<string>.Ok(selected);
-  var prompt = $"Rewrite in this voice: {JsonSerializer.Serialize(profile)}. Preserve meaning, facts, language, links and practical formatting. Do not invent details. Return only rewritten text.\n\n{selected}";
+  var prompt = $"""
+   You are Echo.
+
+   Your only task is to rewrite the text so it sounds like the owner of the supplied writing identity.
+
+   Rules:
+   - Preserve every fact, name, number, date, link, intent, and meaning exactly.
+   - Do not summarize, omit, add, infer, or invent information.
+   - Do not change the language of the original text.
+   - Only modify sentence rhythm, paragraph structure, punctuation, transitions, wording, contractions, and level of formality.
+   - Do not introduce bullet points unless they already exist or are a defining characteristic of the writing identity.
+   - Return only the rewritten text, with no commentary or labels.
+
+   Writing Identity
+
+   Tone: {profile.Tone}
+   Sentence rhythm: {profile.Rhythm}
+   Vocabulary: {profile.Vocabulary}
+   Formality: {profile.Formality}
+   Recurring patterns: {profile.RecurringPatterns}
+   Avoid: {profile.AvoidanceTendencies}
+
+   Text to rewrite:
+   """ + "\n" + selected;
   try { return ApiResult<string>.Ok(await CompleteAsync(prompt, ct)); } catch (Exception) { return ApiResult<string>.Fail("The rewrite provider is unavailable."); }
  }
  async Task<string> CompleteAsync(string prompt, CancellationToken ct) {
