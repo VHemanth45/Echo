@@ -70,7 +70,8 @@ public sealed class NimClient(IHttpClientFactory factory, IConfiguration configu
    temperature = 1,
    top_p = .95,
    max_tokens = 16384,
-   extra_body = new { chat_template_kwargs = new { enable_thinking = true }, reasoning_budget = 16384 }
+   chat_template_kwargs = new { enable_thinking = true },
+   reasoning_budget = 16384
   });
   using var response = await factory.CreateClient().SendAsync(request, ct);
   var body = await response.Content.ReadAsStringAsync(ct);
