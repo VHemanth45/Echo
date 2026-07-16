@@ -10,6 +10,6 @@ Echo is a Windows background utility that generates an encrypted local voice pro
 
 ## Verification and publication
 
-Run `dotnet run --project tests/Echo.Tests`. Publish manually with `dotnet publish src/Echo.Desktop -c Release -r win-x64 --self-contained true -o publish`, then upload `publish` to GitHub Releases. The static download page is in `site/` and is GitHub Pages-ready.
+Run `dotnet run --project tests/Echo.Tests`. Tagging a version such as `v1.0.0` runs the GitHub workflow: it publishes a self-contained Windows build, attaches `Echo-win-x64.zip` to the GitHub Release, and deploys the landing page from `site/` to GitHub Pages. Enable Pages with **GitHub Actions** as the source in the repository settings before the first run.
 
 The gateway never logs customer content. It validates consent, sample count, and the 2,000-word rewrite limit. The desktop app preserves the previous clipboard object after each attempt and only pastes following a successful rewrite.

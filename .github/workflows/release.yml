@@ -1,0 +1,35 @@
+name: Release Echo
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish Windows app
+        run: dotnet publish src/Echo.Desktop -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/Echo-win-x64
+      - name: Package release
+        shell: pwsh
+        run: Compress-Archive -Path artifacts/Echo-win-x64/* -DestinationPath artifacts/Echo-win-x64.zip
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: artifacts/Echo-win-x64.zip
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - uses: actions/deploy-pages@v4
