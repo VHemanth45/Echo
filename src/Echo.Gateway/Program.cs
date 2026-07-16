@@ -1,15 +1,18 @@
 using Echo.Contracts;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 
@@ -31,16 +34,26 @@ app.MapPost("/api/rewrite", async (RewriteRequest request, NimClient nim, Cancel
 });
 app.Run();
 
-public sealed class NimClient(IHttpClientFactory factory, IConfiguration configuration) {
+public sealed class NimClient(IHttpClientFactory factory, IConfiguration configuration, ILogger<NimClient> logger) {
  public async Task<ApiResult<VoiceProfile>> ProfileAsync(IReadOnlyList<string> samples, CancellationToken ct) {
   if (string.IsNullOrWhiteSpace(configuration["Nim:ApiKey"])) return ApiResult<VoiceProfile>.Ok(new("clear and direct", "varied sentence lengths", "plain, precise language", "professional but warm", "concise paragraphs", "jargon and unsupported claims"));
-  var prompt = "Analyze these writing samples. Return JSON with tone, rhythm, vocabulary, formality, recurringPatterns, avoidanceTendencies. Samples:\n" + string.Join("\n---\n", samples);
+  var prompt = """
+   Analyze these writing samples and produce a voice profile. Return only one JSON object, with no Markdown or explanation.
+   The object must contain these six non-empty string properties: tone, rhythm, vocabulary, formality, recurringPatterns, avoidanceTendencies.
+   Samples:
+   """ + "\n" + string.Join("\n---\n", samples);
   try {
    var text = await CompleteAsync(prompt, ct);
    var json = ExtractJsonObject(text);
    var profile = JsonSerializer.Deserialize<VoiceProfile>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-   return profile is null ? ApiResult<VoiceProfile>.Fail("NIM returned an invalid profile.") : ApiResult<VoiceProfile>.Ok(profile);
-  } catch (Exception) { return ApiResult<VoiceProfile>.Fail("The profile provider is unavailable or returned an invalid profile."); }
+   return profile is null || !ValidProfile(profile) ? ApiResult<VoiceProfile>.Fail("NIM did not return a complete voice profile.") : ApiResult<VoiceProfile>.Ok(profile);
+  } catch (NimRequestException error) {
+   logger.LogWarning("NIM profile request failed with HTTP {StatusCode}: {Response}", (int)error.StatusCode, error.Response);
+   return ApiResult<VoiceProfile>.Fail($"NIM profile request failed ({(int)error.StatusCode} {error.StatusCode}).");
+  } catch (Exception error) {
+   logger.LogWarning(error, "NIM profile response could not be parsed");
+   return ApiResult<VoiceProfile>.Fail("NIM returned a response that was not a valid voice profile.");
+  }
  }
  public async Task<ApiResult<string>> RewriteAsync(string selected, VoiceProfile profile, CancellationToken ct) {
   if (string.IsNullOrWhiteSpace(configuration["Nim:ApiKey"])) return ApiResult<string>.Ok(selected);
@@ -51,9 +64,22 @@ public sealed class NimClient(IHttpClientFactory factory, IConfiguration configu
   var apiKey = NormalizeBearerToken(configuration["Nim:ApiKey"]);
   var request = new HttpRequestMessage(HttpMethod.Post, configuration["Nim:Endpoint"] ?? throw new InvalidOperationException("Nim endpoint is not configured"));
   request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-  request.Content = JsonContent.Create(new { model = configuration["Nim:Model"], messages = new[] { new { role = "user", content = prompt } }, temperature = .2 });
-  using var response = await factory.CreateClient().SendAsync(request, ct); response.EnsureSuccessStatusCode();
-  using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct)); return doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? throw new InvalidOperationException();
+  request.Content = JsonContent.Create(new {
+   model = configuration["Nim:Model"],
+   messages = new[] { new { role = "user", content = prompt } },
+   temperature = 1,
+   top_p = .95,
+   max_tokens = 16384,
+   extra_body = new { chat_template_kwargs = new { enable_thinking = true }, reasoning_budget = 16384 }
+  });
+  using var response = await factory.CreateClient().SendAsync(request, ct);
+  var body = await response.Content.ReadAsStringAsync(ct);
+  if (!response.IsSuccessStatusCode) throw new NimRequestException(response.StatusCode, Truncate(body));
+  using var doc = JsonDocument.Parse(body);
+  var message = doc.RootElement.GetProperty("choices")[0].GetProperty("message");
+  if (message.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(content.GetString())) return content.GetString()!;
+  if (message.TryGetProperty("reasoning_content", out var reasoning) && reasoning.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(reasoning.GetString())) return reasoning.GetString()!;
+  throw new InvalidOperationException("NIM returned no assistant content.");
  }
  static string NormalizeBearerToken(string? configuredKey) {
   var value = configuredKey?.Trim() ?? "";
@@ -65,4 +91,11 @@ public sealed class NimClient(IHttpClientFactory factory, IConfiguration configu
   if (start < 0 || end <= start) throw new JsonException("No JSON object was returned.");
   return text[start..(end + 1)];
  }
+ static bool ValidProfile(VoiceProfile profile) => new[] { profile.Tone, profile.Rhythm, profile.Vocabulary, profile.Formality, profile.RecurringPatterns, profile.AvoidanceTendencies }.All(value => !string.IsNullOrWhiteSpace(value));
+ static string Truncate(string value) => value.Length <= 1000 ? value : value[..1000];
+}
+
+public sealed class NimRequestException(HttpStatusCode statusCode, string response) : Exception($"NIM returned {(int)statusCode} {statusCode}.") {
+ public HttpStatusCode StatusCode { get; } = statusCode;
+ public string Response { get; } = response;
 }
