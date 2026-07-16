@@ -13,3 +13,4 @@ obj/
 publish/
 artifacts/
 .dotnet/
+.nuget/
