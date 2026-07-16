@@ -28,4 +28,4 @@ $env:Nim__Model = $Model
 $env:DOTNET_CLI_HOME = $repoRoot
 
 Write-Host "Starting Echo gateway with NIM model '$Model' at $Url"
-dotnet run --no-build --project "$repoRoot\src\Echo.Gateway" --urls $Url
+dotnet run --project "$repoRoot\src\Echo.Gateway" --urls $Url
