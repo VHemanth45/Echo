@@ -11,4 +11,5 @@ wheels/
 bin/
 obj/
 publish/
+artifacts/
 .dotnet/
